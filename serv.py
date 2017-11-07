@@ -1,8 +1,29 @@
 from multiprocessing import Process
 import socket,time,sqlite3,time,os,random
+try:
+    import serv_settings
+except:
+    f = open("serv_settings.py","w")
+    t = '''
+IP_ADDRESS = ""
 
-KEY_DECAY_TIME = 3600 #seconds. has to be no longer than 9999 for protocol v1 
+PORT = 9090
+
+KEY_DECAY_TIME = 3600
+
 ONLINE_CONFIRM_TIME = 600
+
+LOGGING = 1
+
+LOGFOLDER = "logs"
+
+MAX_CLIENTS = 100
+        '''
+    f.write(t)
+    f.close()
+    import serv_settings
+
+
 
 def error_p(errmsg):
     print("Error: "+errmsg)
@@ -18,14 +39,36 @@ def add_nulls(dlen,data):
         to_ret = "0"*dif+to_ret
     return to_ret
 
+class logging_db:
+    def __init__(self):
+        print(1)
+        #cur,connection = self.connect_to_db()
+        #todo
+        #make traffic counting
+        #make error logging here
+        #traffic counted by dates and users
+        #each user has to have separate table
+        #tables must be wiped sometimes))))00000
+    
+    def connect_to_db(self):
+        try:
+            connection = sqlite3.connect(serv_settings.LOGFOLDER+"/"+"log.db")
+        except:
+            os.mkdir(serv_settings.LOGFOLDER)
+            connection = sqlite3.connect(serv_settings.LOGFOLDER+"/"+"log.db")
+        cur = connection.cursor()
+        return(cur,connection)
+    
+        
+    
+
 class dbwork:
     #1)login,password,id - logindata
     #2)id,key,time_to_change_key - keys
     #3)id,time_to_offline - onlines
     #4)id,unread_messages - messages
     def __init__(self):
-        connection = sqlite3.connect("chatdb.db")
-        cur = connection.cursor()
+        cur,connection = self.connect_to_db()
         #creating tables
         cur.execute('''
             CREATE TABLE IF NOT EXISTS logindata(
@@ -52,10 +95,14 @@ class dbwork:
         connection.commit()
         connection.close()
 
-    def generate_key(self,ID): #generates a new key for given ID
-        random.seed()
+    def connect_to_db(self):
         connection = sqlite3.connect("chatdb.db")
         cur = connection.cursor()
+        return(cur,connection)
+
+    def generate_key(self,ID): #generates a new key for given ID
+        random.seed()
+        cur,connection = self.connect_to_db()
         key = random.randint(10000000,99999999)
         ok = 0
         while(ok==0): #generating a unique key for messaging
@@ -66,7 +113,7 @@ class dbwork:
             else:
                 key = random.randint(10000000,99999999)
         cur.execute("SELECT * FROM keys WHERE ID = ?",(ID,)) #checking if the
-        dtime = time.time()+KEY_DECAY_TIME                   #ID in table
+        dtime = time.time()+serv_settings.KEY_DECAY_TIME                   #ID in table
         if(cur.fetchone()==None):
             cur.execute("INSERT INTO keys VALUES (?,?,?)",(ID,key,dtime))
         else:
@@ -76,8 +123,7 @@ class dbwork:
         return(key)
 
     def get_messages(self,ID):
-        connection = sqlite3.connect("chatdb.db")
-        cur = connection.cursor()
+        cur,connection = self.connect_to_db()
         cur.execute("SELECT MESSAGE FROM messages WHERE ID = ?",(ID,))
         msgs = cur.fetchall()
         msgdata = b""
@@ -94,16 +140,14 @@ class dbwork:
             return(msgdata)
 
     def get_ID_by_login(self,login):
-        connection = sqlite3.connect("chatdb.db")
-        cur = connection.cursor()
+        cur,connection = self.connect_to_db()
         cur.execute("SELECT ID FROM logindata WHERE LOGIN = ?",(login,))
         ID = cur.fetchone()[0]
         connection.close()
         return(ID)
     
     def get_key(self,ID): #returns a key for given ID
-        connection = sqlite3.connect("chatdb.db")
-        cur = connection.cursor()
+        cur,connection = self.connect_to_db()
         cur.execute("SELECT KEY FROM keys WHERE ID = ?",(ID,))
         key = cur.fetchone()
         if(key!=None):
@@ -112,8 +156,7 @@ class dbwork:
         return(key)
 
     def get_key_dtime(self,ID):
-        connection = sqlite3.connect("chatdb.db")
-        cur = connection.cursor()
+        cur,connection = self.connect_to_db()
         cur.execute("SELECT DTIME FROM keys WHERE ID = ?",(ID,))
         dtime = cur.fetchone()
         if(dtime!=None):
@@ -122,8 +165,7 @@ class dbwork:
         return(dtime)
     
     def get_ID_by_key(self,key):
-        connection = sqlite3.connect("chatdb.db")
-        cur = connection.cursor()
+        cur,connection = self.connect_to_db()
         cur.execute("SELECT ID, DTIME FROM keys WHERE key = ?",(key,))
         uid = cur.fetchone()
         connection.close()
@@ -138,17 +180,15 @@ class dbwork:
                 return(uid)
         
     def update_user_online(self,ID):
-        otime = time.time()+ONLINE_CONFIRM_TIME
-        connection = sqlite3.connect("chatdb.db")
-        cur = connection.cursor()
+        otime = time.time()+serv_settings.ONLINE_CONFIRM_TIME
+        cur,connection = self.connect_to_db()
         cur.execute("REPLACE INTO onlines VALUES(?,?)",(ID,otime))
         connection.commit()
         connection.close()
 
     def get_users_online(self):
         ctime = time.time()
-        connection = sqlite3.connect("chatdb.db")
-        cur = connection.cursor()
+        cur,connection = self.connect_to_db()
         cur.execute("SELECT ID FROM onlines WHERE OTIME > ?",(ctime,))
         onlineIDs = cur.fetchall()
         onlines = []
@@ -160,15 +200,13 @@ class dbwork:
             return(onlines)
 
     def add_message(self,ID,msg):
-        connection = sqlite3.connect("chatdb.db")
-        cur = connection.cursor()
+        cur,connection = self.connect_to_db()
         cur.execute("INSERT INTO messages VALUES(?,?)",(ID,msg))
         connection.commit()
         connection.close()
     
     def login(self,login,password):
-        connection = sqlite3.connect("chatdb.db")
-        cur = connection.cursor()
+        cur,connection = self.connect_to_db()
         cur.execute("SELECT * FROM logindata WHERE LOGIN = ?",(login,))
         udata = cur.fetchone()
         if(udata==None):
@@ -194,17 +232,21 @@ class dbwork:
 class client_job:
 
     def send_close(self,data):
-        try:
-            self.conn.send(data.encode("utf-8"))
-        except:
-            self.conn.send(data)
+        self.send_msg(data)
         self.conn.close()
-
     def send_msg(self,data):
+        count = 0
         try:
-            self.conn.send(data.encode("utf-8"))
+            try:
+                self.conn.send(data.encode("utf-8"))
+                count = len(data.encode("utf-8"))
+            except:
+                self.conn.send(data)
+                count = len(data)
         except:
-            self.conn.send(data)
+            self.write_log("error sending to: "+str(self.addr))
+            return
+        self.count_traffic(count,"out")
     
     def answer_ask_chk(self):
         self.ID = self.database.get_ID_by_key(self.key)
@@ -388,6 +430,46 @@ class client_job:
             else:
                 self.error = 4
                 return(0)
+
+    def write_log(self,errtext):
+        if(serv_settings.LOGGING==1 and self.error!=10 and self.error!=11):
+            lname = add_nulls(8,str(self.ID))
+            try:
+                f = open(serv_settings.LOGFOLDER+"/"+lname,"a")
+            except:
+                os.mkdir(serv_settings.LOGFOLDER)
+                f = open(serv_settings.LOGFOLDER+"/"+lname,"a")
+            outstr = time.strftime("***%Y-%m-%d %H:%M:%S*** ")
+            outstr+="Error ID: "+str(self.error)+" "
+            outstr+="Error text: "+errtext+"\n"
+            f.write(outstr)
+            f.close()
+            print(outstr)
+
+    def count_traffic(self,num,traffic_type):
+        ipstr = str(self.addr[0]).replace(".","g")
+        if(serv_settings.LOGGING==1):
+            try:
+                try:
+                    f = open(serv_settings.LOGFOLDER+"/"+"traffic"+traffic_type+ipstr+".txt","r")
+                except:
+                    f = open(serv_settings.LOGFOLDER+"/"+"traffic"+traffic_type+ipstr+".txt","w")
+                    f.close()
+                    f = open(serv_settings.LOGFOLDER+"/"+"traffic"+traffic_type+ipstr+".txt","r")
+            except:
+                os.mkdir(serv_settings.LOGFOLDER)
+                f = open(serv_settings.LOGFOLDER+"/"+"traffic"+traffic_type+ipstr+".txt","r")
+            count = f.read()
+            f.close()
+            try:
+                c_bytes = int(count)
+            except:
+                c_bytes = 0
+            c_bytes+=num
+            f = open(serv_settings.LOGFOLDER+"/"+"traffic"+traffic_type+ipstr+".txt","w")
+            f.write(str(c_bytes))
+            f.close()
+            
     
     def work_with_client(self,conn,addr):
         self.database = dbwork()
@@ -399,24 +481,27 @@ class client_job:
         self.password = ""
         self.protocol = 0
         self.error = 0 #zero is for unknown error
-        data = self.conn.recv(11)
+        try:
+            data = self.conn.recv(11)
+        except:
+            print(1)
         to_recieve = self.read_ask_msg(data)
         if(to_recieve==0):
             bmsg = "BA"+add_nulls(4,str(self.error))
-            self.conn.send(bmsg.encode("utf-8"))
-            self.conn.close()
+            self.send_close(bmsg.encode("utf-8"))
+            self.write_log("initiation bad from: "+str(self.addr))
             return
         elif(to_recieve==-1):
             self.conn.close()
             return
         else:
-            self.conn.send("OK0000".encode("utf-8"))
+            self.send_msg("OK0000".encode("utf-8"))
             data = conn.recv(to_recieve)
             to_recieve = self.read_msg(data,to_recieve)
             if(to_recieve==0):
                 bmsg = "BA"+add_nulls(16,str(self.error))
-                self.conn.send(bmsg.encode("utf-8"))
-                self.conn.close()
+                self.send_close(bmsg.encode("utf-8"))
+                self.write_log("shit with message from: "+str(self.addr))
             else:
                 self.conn.close()
 
@@ -427,14 +512,10 @@ def start_process(conne,addre):
     job = client_job()
     job.work_with_client(conne,addre)
         
-        
-#a = dbwork()
-#print(a.login("SAS","123"))
-#print(a.get_messages(2))
 if(__name__=="__main__"):
     sock = socket.socket()
-    sock.bind(('192.168.1.3', 9090))
-    sock.listen(10)
+    sock.bind((serv_settings.IP_ADDRESS, serv_settings.PORT))
+    sock.listen(serv_settings.MAX_CLIENTS)
     while True:
         conn, addr = sock.accept()
         answ = Process(target=start_process,args=(conn,addr))
