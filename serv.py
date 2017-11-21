@@ -41,14 +41,46 @@ def add_nulls(dlen,data):
 
 class logging_db:
     def __init__(self):
-        print(1)
-        #cur,connection = self.connect_to_db()
+        cur,connection = self.connect_to_db()
+        cur.execute('''
+            CREATE TABLE IF NOT EXISTS errlogs(
+                ADDR TEXT,
+                DATE TEXT,
+                ERROR TEXT)
+            ''')
+        cur.execute('''
+            CREATE TABLE IF NOT EXISTS traffics(
+                ADDR TEXT,
+                TYPE TEXT,
+                AMOUNT INTEGER)
+            ''')#amount in bytes
+        connection.commit()
+        connection.close()
         #todo
         #make traffic counting
         #make error logging here
         #traffic counted by dates and users
-        #each user has to have separate table
         #tables must be wiped sometimes))))00000
+
+    def add_traffic(self,addr,ttype,amount):
+        cur,connection = self.connect_to_db()
+        cur.execute("SELECT AMOUNT FROM traffics WHERE ADDR = ? AND TYPE = ?",(addr,ttype))
+        d = cur.fetchone()
+        if(d!=None):
+            num = d[0]
+            num+=amount
+            cur.execute("UPDATE traffics SET AMOUNT = ? WHERE ADDR = ? AND TYPE = ?",(num,addr,ttype))
+        else:
+            cur.execute("INSERT INTO traffics VALUES (?,?,?)",(addr,ttype,amount))
+        connection.commit()
+        connection.close()
+
+    def add_error(self,addr,error):
+        date = time.time()
+        cur,connection = self.connect_to_db()
+        cur.execute("INSERT INTO errlogs VALUES (?,?,?)",(addr,str(date),error))
+        connection.commit()
+        connection.close()
     
     def connect_to_db(self):
         try:
@@ -433,45 +465,18 @@ class client_job:
 
     def write_log(self,errtext):
         if(serv_settings.LOGGING==1 and self.error!=10 and self.error!=11):
-            lname = add_nulls(8,str(self.ID))
-            try:
-                f = open(serv_settings.LOGFOLDER+"/"+lname,"a")
-            except:
-                os.mkdir(serv_settings.LOGFOLDER)
-                f = open(serv_settings.LOGFOLDER+"/"+lname,"a")
-            outstr = time.strftime("***%Y-%m-%d %H:%M:%S*** ")
-            outstr+="Error ID: "+str(self.error)+" "
+            self.log.add_error(self.addr[0],errtext)
+            outstr="Error ID: "+str(self.error)+" "
             outstr+="Error text: "+errtext+"\n"
-            f.write(outstr)
-            f.close()
             print(outstr)
 
     def count_traffic(self,num,traffic_type):
-        ipstr = str(self.addr[0]).replace(".","g")
         if(serv_settings.LOGGING==1):
-            try:
-                try:
-                    f = open(serv_settings.LOGFOLDER+"/"+"traffic"+traffic_type+ipstr+".txt","r")
-                except:
-                    f = open(serv_settings.LOGFOLDER+"/"+"traffic"+traffic_type+ipstr+".txt","w")
-                    f.close()
-                    f = open(serv_settings.LOGFOLDER+"/"+"traffic"+traffic_type+ipstr+".txt","r")
-            except:
-                os.mkdir(serv_settings.LOGFOLDER)
-                f = open(serv_settings.LOGFOLDER+"/"+"traffic"+traffic_type+ipstr+".txt","r")
-            count = f.read()
-            f.close()
-            try:
-                c_bytes = int(count)
-            except:
-                c_bytes = 0
-            c_bytes+=num
-            f = open(serv_settings.LOGFOLDER+"/"+"traffic"+traffic_type+ipstr+".txt","w")
-            f.write(str(c_bytes))
-            f.close()
+            self.log.add_traffic(self.addr[0],traffic_type,num)
             
     
     def work_with_client(self,conn,addr):
+        self.log = logging_db()
         self.database = dbwork()
         self.conn = conn
         self.addr = addr
@@ -511,7 +516,7 @@ class client_job:
 def start_process(conne,addre):
     job = client_job()
     job.work_with_client(conne,addre)
-        
+
 if(__name__=="__main__"):
     sock = socket.socket()
     sock.bind((serv_settings.IP_ADDRESS, serv_settings.PORT))
