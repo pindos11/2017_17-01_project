@@ -2,7 +2,7 @@
 <HTML>
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1252">
-	<TITLE></TITLE>
+	
 	<META NAME="GENERATOR" CONTENT="OpenOffice 4.1.4  (Win32)">
 	<META NAME="CREATED" CONTENT="20090416;11320264">
 	<META NAME="CHANGED" CONTENT="20171202;18393851">
@@ -10,12 +10,7 @@
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
-	<STYLE TYPE="text/css">
-	<!--
-		@page { size: 8.27in 11.69in; margin: 0.79in }
-		P { margin-bottom: 0.08in; so-language: zxx }
-	-->
-	</STYLE>
+
 </HEAD>
 <BODY LANG="de-DE" LINK="#000080" VLINK="#800000" DIR="LTR">
 <P LANG="ru-RU" STYLE="margin-bottom: 0in">&#1052;&#1080;&#1085;&#1080;-&#1084;&#1077;&#1089;&#1089;&#1077;&#1085;&#1076;&#1078;&#1077;&#1088;
