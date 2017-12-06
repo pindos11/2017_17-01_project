@@ -2,13 +2,25 @@
 <HTML>
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1252">
-	
-
+	<TITLE></TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice 4.1.4  (Win32)">
+	<META NAME="CREATED" CONTENT="20090416;11320264">
+	<META NAME="CHANGED" CONTENT="20171202;18393851">
+	<META NAME="Info 1" CONTENT="">
+	<META NAME="Info 2" CONTENT="">
+	<META NAME="Info 3" CONTENT="">
+	<META NAME="Info 4" CONTENT="">
+	<STYLE TYPE="text/css">
+	<!--
+		@page { size: 8.27in 11.69in; margin: 0.79in }
+		P { margin-bottom: 0.08in; so-language: zxx }
+	-->
+	</STYLE>
 </HEAD>
 <BODY LANG="de-DE" LINK="#000080" VLINK="#800000" DIR="LTR">
-<P LANG="ru-RU" STYLE="margin-bottom: 0in">&#1052;&#1080;&#1085;&#1080;-&#1084;&#1077;&#1089;&#1089;&#1077;&#1085;&#1076;&#1078;&#1077;&#1088;
-&#1085;&#1072; <SPAN LANG="en-US">python</SPAN></P>
-<P LANG="ru-RU" STYLE="margin-bottom: 0in"><BR>
+<P LANG="ru-RU" STYLE="margin-bottom: 0in"><FONT SIZE=4 STYLE="font-size: 15pt"><B>&#1052;&#1080;&#1085;&#1080;-&#1084;&#1077;&#1089;&#1089;&#1077;&#1085;&#1076;&#1078;&#1077;&#1088;
+&#1085;&#1072; <SPAN LANG="en-US">python</SPAN></B></FONT></P>
+<P LANG="en-US" STYLE="margin-bottom: 0in"><BR>
 </P>
 <P LANG="ru-RU" STYLE="margin-bottom: 0in">&#1060;&#1091;&#1085;&#1082;&#1094;&#1080;&#1080;:</P>
 <UL>
@@ -49,5 +61,16 @@
 &#1079;&#1072;&#1087;&#1091;&#1089;&#1082;&#1072; &#1082;&#1083;&#1080;&#1077;&#1085;&#1090;&#1072;
 &mdash; &#1079;&#1072;&#1087;&#1091;&#1089;&#1090;&#1080;&#1090;&#1100;
 <SPAN LANG="en-US">client.py.</SPAN></P>
+<P LANG="ru-RU" STYLE="margin-bottom: 0in"><BR>
+</P>
+<P LANG="ru-RU" STYLE="margin-bottom: 0in"><BR>
+</P>
+<P LANG="ru-RU" STYLE="margin-bottom: 0in"><FONT SIZE=2 STYLE="font-size: 11pt"><I>&#1040;&#1074;&#1090;&#1086;&#1088;&#1099;:
+</I></FONT>
+</P>
+<P LANG="ru-RU" STYLE="margin-bottom: 0in"><FONT SIZE=2 STYLE="font-size: 11pt"><I>&#1047;&#1091;&#1076;&#1080;&#1083;&#1086;&#1074;,
+&#1041;&#1088;&#1072;&#1075;&#1080;&#1085;, &#1063;&#1072;&#1097;&#1080;&#1085;,
+&#1052;&#1080;&#1088;&#1089;&#1082;&#1086;&#1074;&#1072;, &#1055;&#1088;&#1086;&#1082;&#1086;&#1087;&#1100;&#1077;&#1074;,
+&#1057;&#1077;&#1083;&#1080;&#1085;.</I></FONT></P>
 </BODY>
 </HTML>
